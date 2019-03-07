@@ -1,5 +1,6 @@
 package sensorstatisticstask;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -13,11 +14,13 @@ import java.nio.file.Paths;
 @SpringBootApplication
 public class SensorStatisticsTaskApplication implements CommandLineRunner {
 
+    @Autowired
     private StatisticsCalculator statisticsCalculator;
+    @Autowired
     private StatisticsPrinter statisticsPrinter;
 
     public static void main(String[] args) {
-        SpringApplication.run(SensorStatisticsTaskApplication2.class, args);
+        SpringApplication.run(SensorStatisticsTaskApplication.class, args);
     }
 
     @Override
