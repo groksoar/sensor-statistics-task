@@ -29,9 +29,7 @@ public class StatisticsCalculatorImpl implements StatisticsCalculator {
     public StatisticsReport apply(Path pathToDirectory) {
         try (Stream<Path> stream = Files.walk(pathToDirectory)) {
 
-            List<Path> files = stream.filter(((Predicate<Path>) Files::isDirectory).negate())
-                    .filter(path -> path.toString().toLowerCase().endsWith(".csv"))
-                    .collect(Collectors.toList());
+            List<Path> files = getCsvFiles(stream);
 
             Map<String, Boolean> failedSensorsTracker = new ConcurrentHashMap<>();
             LongAdder numOfMeasurements = new LongAdder();
@@ -59,6 +57,12 @@ public class StatisticsCalculatorImpl implements StatisticsCalculator {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private List<Path> getCsvFiles(Stream<Path> stream) {
+        return stream.filter(((Predicate<Path>) Files::isDirectory).negate())
+                .filter(path -> path.toString().toLowerCase().endsWith(".csv"))
+                .collect(Collectors.toList());
     }
 
     private Map<String, Optional<IntSummaryStatistics>> getFailedSensors(Map<String, Boolean> failedSensorsTracker) {

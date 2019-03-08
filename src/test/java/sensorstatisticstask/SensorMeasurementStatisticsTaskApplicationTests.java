@@ -9,13 +9,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.FileSystemUtils;
 import sensorstatisticstask.component.StatisticsCalculator;
+import sensorstatisticstask.component.StatisticsPrinter;
+import sensorstatisticstask.component.StatisticsPrinterImpl;
 import sensorstatisticstask.config.AppConfig;
 import sensorstatisticstask.entity.StatisticsReport;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,6 +58,34 @@ public class SensorMeasurementStatisticsTaskApplicationTests {
 
         assertEquals("s2", report.getStatistics().keySet().stream().findFirst().get());
         assertEquals("s3", report.getStatistics().keySet().stream().skip(report.getStatistics().size() - 1).findFirst().get());
+    }
+
+    @Test
+    public void statisticsPrinterTest() {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        StatisticsPrinter printer = new StatisticsPrinterImpl(baos);
+
+        IntSummaryStatistics s3Stats= new IntSummaryStatistics();
+        s3Stats.accept(1);
+        s3Stats.accept(3);
+
+        Map<String, Optional<IntSummaryStatistics>> stats = new LinkedHashMap<>();
+        stats.put("s3", Optional.of(s3Stats));
+        stats.put("s1", Optional.empty());
+        stats.put("s5", Optional.empty());
+
+        printer.accept(new StatisticsReport(2,4, 2, stats));
+
+        String expected = String.format("Num of processed files: 2 %n" +
+                "Num of processed measurements: 4 %n" +
+                "Num of failed measurements: 2 %n%n" +
+                "Sensors with highest avg humidity:%n%n" +
+                "sensorMeasurement-id,min,avg,max%n" +
+                "s3,1,2,3 %n" +
+                "s1,NaN,NaN,NaN %n" +
+                "s5,NaN,NaN,NaN %n");
+
+        assertEquals(expected, new String(baos.toByteArray()));
     }
 
     @After
