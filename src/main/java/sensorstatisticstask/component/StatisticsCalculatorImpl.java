@@ -37,7 +37,7 @@ public class StatisticsCalculatorImpl implements StatisticsCalculator {
             LongAdder numOfMeasurements = new LongAdder();
             LongAdder numOfFailedMeasurements = new LongAdder();
 
-            Map<String, IntSummaryStatistics> map = files.parallelStream()
+            Map<String, IntSummaryStatistics> sensors = files.parallelStream()
                     .flatMap(measurementsReader)
                     .peek(sensorMeasurement -> numOfMeasurements.increment())
                     .peek(sensorMeasurement -> {
@@ -47,29 +47,31 @@ public class StatisticsCalculatorImpl implements StatisticsCalculator {
                     })
                     .peek(sensorMeasurement -> failedSensorsTracker.compute(sensorMeasurement.getSensorId(),
                             (k, v) -> v == null ? sensorMeasurement.isFailed() : v && sensorMeasurement.isFailed()))
-                    .collect(groupingBy(SensorMeasurement::getSensorId, summarizingInt(SensorMeasurement::getAdjustedMeasurement)));
+                    .filter(sensorMeasurement -> !sensorMeasurement.isFailed())
+                    .collect(groupingBy(SensorMeasurement::getSensorId, summarizingInt(SensorMeasurement::getMeasurement)));
 
-            Set<String> failedSensors = failedSensorsTracker.entrySet().stream()
-                    .filter(Entry::getValue)
-                    .map(Entry::getKey)
-                    .collect(Collectors.toSet());
+            Map<String, Optional<IntSummaryStatistics>> failedSensors = getFailedSensors(failedSensorsTracker);
 
-            map = sortStatistics(map, failedSensors);
+            Map<String, Optional<IntSummaryStatistics>> sortedSensors = sortSensors(sensors);
+            sortedSensors.putAll(failedSensors);
 
-            return new StatisticsReport(files.size(), numOfMeasurements.sum(), numOfFailedMeasurements.sum(), map, failedSensors);
+            return new StatisticsReport(files.size(), numOfMeasurements.sum(), numOfFailedMeasurements.sum(), sortedSensors);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private Map<String, IntSummaryStatistics> sortStatistics(Map<String, IntSummaryStatistics> statistics, Set<String> failedSensors) {
+    private Map<String, Optional<IntSummaryStatistics>> getFailedSensors(Map<String, Boolean> failedSensorsTracker) {
+        return failedSensorsTracker.entrySet().stream()
+                .filter(Entry::getValue)
+                .map(Entry::getKey)
+                .collect(Collectors.toMap(e -> e, e -> Optional.empty()));
+    }
+
+    private Map<String, Optional<IntSummaryStatistics>> sortSensors(Map<String, IntSummaryStatistics> statistics) {
         return statistics.entrySet().stream()
-                .sorted((e1, e2) -> {
-                    double d1 = failedSensors.contains(e1.getKey()) ? Double.MIN_VALUE : e1.getValue().getAverage();
-                    double d2 = failedSensors.contains(e2.getKey()) ? Double.MIN_VALUE : e2.getValue().getAverage();
-                    return Double.compare(d2, d1);
-                })
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue, (s1, s2) -> s1, LinkedHashMap::new));
+                .sorted((e1, e2) -> Double.compare(e2.getValue().getAverage(), e1.getValue().getAverage()))
+                .collect(Collectors.toMap(Entry::getKey, e -> Optional.of(e.getValue()), (s1, s2) -> s1, LinkedHashMap::new));
     }
 
 }

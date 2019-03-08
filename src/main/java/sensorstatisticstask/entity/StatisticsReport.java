@@ -2,21 +2,19 @@ package sensorstatisticstask.entity;
 
 import java.util.IntSummaryStatistics;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 
 public class StatisticsReport {
     private long numOfProcessedFiles;
     private long numOfProcessedMeasurements;
     private long numOfFailedMeasurements;
-    private Map<String, IntSummaryStatistics> statistics;
-    private Set<String> failedSensors;
+    private Map<String, Optional<IntSummaryStatistics>> statistics;
 
-    public StatisticsReport(long numOfProcessedFiles, long numOfProcessedMeasurements, long numOfFailedMeasurements, Map<String, IntSummaryStatistics> statistics, Set<String> failedSensors) {
+    public StatisticsReport(long numOfProcessedFiles, long numOfProcessedMeasurements, long numOfFailedMeasurements, Map<String, Optional<IntSummaryStatistics>> statistics) {
         this.numOfProcessedFiles = numOfProcessedFiles;
         this.numOfProcessedMeasurements = numOfProcessedMeasurements;
         this.numOfFailedMeasurements = numOfFailedMeasurements;
         this.statistics = statistics;
-        this.failedSensors = failedSensors;
     }
 
     public long getNumOfProcessedFiles() {
@@ -31,11 +29,8 @@ public class StatisticsReport {
         return numOfFailedMeasurements;
     }
 
-    public Map<String, IntSummaryStatistics> getStatistics() {
+    public Map<String, Optional<IntSummaryStatistics>> getStatistics() {
         return statistics;
     }
 
-    public Set<String> getFailedSensors() {
-        return failedSensors;
-    }
 }

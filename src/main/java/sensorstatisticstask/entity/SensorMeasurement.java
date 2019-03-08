@@ -18,10 +18,6 @@ public class SensorMeasurement {
         return measurement;
     }
 
-    public int getAdjustedMeasurement() {
-        return isFailed() ? 0 : getMeasurement();
-    }
-
     public boolean isFailed() {
         return measurement < 0 || measurement > 100;
     }

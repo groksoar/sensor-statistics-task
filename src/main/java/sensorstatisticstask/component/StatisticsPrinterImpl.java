@@ -4,6 +4,7 @@ import sensorstatisticstask.entity.StatisticsReport;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.IntSummaryStatistics;
 
 public class StatisticsPrinterImpl implements StatisticsPrinter {
 
@@ -24,10 +25,11 @@ public class StatisticsPrinterImpl implements StatisticsPrinter {
             pw.println();
             pw.println("sensorMeasurement-id,min,avg,max");
             statistics.getStatistics().forEach((key, value) -> {
-                if (statistics.getFailedSensors().contains(key)) {
-                    pw.printf("%s,NaN,NaN,NaN %n", key);
+                if (value.isPresent()) {
+                    IntSummaryStatistics stats = value.get();
+                    pw.printf("%s,%d,%.0f,%d %n", key, stats.getMin(), stats.getAverage(), stats.getMax());
                 } else {
-                    pw.printf("%s,%d,%d,%d %n", key, value.getMin(), value.getAverage(), value.getMax());
+                    pw.printf("%s,NaN,NaN,NaN %n", key);
                 }
             });
         }

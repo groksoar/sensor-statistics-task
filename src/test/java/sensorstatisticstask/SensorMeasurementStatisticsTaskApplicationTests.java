@@ -12,13 +12,9 @@ import sensorstatisticstask.component.StatisticsCalculator;
 import sensorstatisticstask.config.AppConfig;
 import sensorstatisticstask.entity.StatisticsReport;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.FileAttribute;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,7 +52,6 @@ public class SensorMeasurementStatisticsTaskApplicationTests {
         assertEquals(2, report.getNumOfFailedMeasurements());
 
         assertEquals(3, report.getStatistics().size());
-        assertEquals(1, report.getFailedSensors().size());
 
         assertEquals("s2", report.getStatistics().keySet().stream().findFirst().get());
         assertEquals("s3", report.getStatistics().keySet().stream().skip(report.getStatistics().size() - 1).findFirst().get());
